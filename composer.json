@@ -1,0 +1,13 @@
+{
+    "name": "b.hall",
+    
+    "require": {
+        
+    },
+    
+    "autoload": {
+        "psr-0": {
+            "": ""
+        }
+    }
+}
