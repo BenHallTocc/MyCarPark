@@ -3,11 +3,13 @@
 spl_autoload_register(
     function ($class) {
         // Project specific namespace
-        $prefix = 'MyCarPark';
+        $prefix = 'MyCarPark\\';
         // Base directory
-        $base_dir = __DIR__ . '/MyCarPark/';
+        $base_dir = __DIR__ . '/src/';
+        
         // Does the class use this namespace?
         $len = strlen($prefix);
+        
         // @codeCoverageIgnoreStart
         if (strncmp($prefix, $class, $len) !== 0) {
             // no

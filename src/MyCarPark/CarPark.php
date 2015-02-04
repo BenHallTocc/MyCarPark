@@ -79,6 +79,7 @@ class CarPark {
      * @param integer $aNumberOfCarSpaces
      * @param integer $aNumberOfLorrySpaces
      * @param integer $aNumberOfMotorbikeSpaces
+     * @param integer $aMaxStay
      */
     function __construct($aName, $aMaxHeight, $aNumberOfCarSpaces,
                             $aNumberOfLorrySpaces, $aNumberOfMotorbikeSpaces, $aMaxStay) {
@@ -209,6 +210,16 @@ class CarPark {
     }
     
     /**
+     * ONLY USED IN TESTS!!!
+     * Sets the 'Parked Cars & Vans' property with an array of cars & vans.
+     * 
+     * @param array $carsAndVans
+     */
+    public function setParkedCarsAndVans($carsAndVans) {
+        $this->parkedCarsAndVans = $carsAndVans;
+    }
+    
+    /**
      * Returns the collection of Lorries in 'Parked Vehicles'.
      * 
      * @return array
@@ -218,12 +229,43 @@ class CarPark {
     }
     
     /**
+     * ONLY USED IN TESTS!!!
+     * Sets the 'Parked Lorries' property with an array of lorries.
+     * 
+     * @param array $lorries
+     */
+    public function setParkedLorries($lorries) {
+        $this->parkedLorries = $lorries;
+    }
+    
+    /**
      * Returns the collection of Motorbikes in 'Parked Vehicles'.
      * 
      * @return array 
      */
     public function getParkedMotorbikes() {
         return $this->parkedMotorbikes;
+    }
+    
+    /**
+     * ONLY USED IN TESTS!!!!
+     * Sets the 'Parked Motorbikes' property with an array of motorbikes.
+     * 
+     * @param array $motorbikes
+     */
+    public function setParkedMotorbikes($motorbikes) {
+        $this->parkedMotorbikes = $motorbikes;
+    }
+     
+    /**
+     * Returns a collection of all the 'Parked Vehicles'.
+     * 
+     * @return array
+     */
+    public function getAllParkedVehicles() {
+        return array_merge($this->getParkedCarsAndVans(),
+                           $this->getParkedLorries(),
+                           $this->getParkedMotorbikes());
     }
     
     /**
@@ -274,23 +316,25 @@ class CarPark {
     //-------- Managing Entry of Car Park --------//
     
     /**
+     * MADE 'public' FOR TESTING!!!
      * Checks whether a vehicle fits within the max height restriction.
      * 
      * @param Vehicle $aVehicle
      * @return bool
      */
-    function heightChecker($aVehicle) {
+    public function heightChecker($aVehicle) {
         return $this->getMaxHeight() > $aVehicle->getHeight();
     }
     
     /**
+     * MADE 'public' FOR TESTING!!! Tested without using 'get_class()'.
      * Checks what type of vehicle the argument is and checks whether their is
      * an appropriate space available for them.
      * 
      * @param Vehicle $aVehicle
      * @return boolean
      */
-    function appropriateSpaceAvailable($aVehicle) {
+    public function appropriateSpaceAvailable($aVehicle) {
         switch (get_class($aVehicle)) {
             case 'Car':
             case 'Van':
@@ -331,27 +375,70 @@ class CarPark {
      * @param Vehicle $aVehicle
      */
     public function vehicleEnters($aVehicle) {
+        $message = '';
+        
         if ($this->canPark($aVehicle)) {
+            $stay = new Stay($this, $aVehicle);
+            
             switch (get_class($aVehicle)) {
                 case 'Car':
                 case 'Van':
-                    array_push($this->parkedCarsAndVans, $aVehicle);
+                    array_push($this->parkedCarsAndVans, $stay);
                     break;
                 case 'Lorry':
-                    array_push($this->parkedLorries, $aVehicle);
+                    array_push($this->parkedLorries, $stay);
                     break;
                 case 'Motorbike':
-                    array_push($this->parkedMotorbikes, $aVehicle);
+                    array_push($this->parkedMotorbikes, $stay);
                     break;
             }
-            echo $aVehicle->getRegistrationNumber() . ' has been permitted entry. Welcome...<br>';
+            $message = $stay->getVehicle()->getRegistrationNumber() . ' has been permitted entry. Welcome...<br>'
+                                      . 'NOTE: Vehicle must exit car park by ' . $stay->getExitByTime() . '.<br>';
         } else {
-            echo $aVehicle->getRegistrationNumber() . ' has been refused entry!<br>';
+            $message = $aVehicle->getRegistrationNumber() . ' has been refused entry!<br>';
         }
+        echo $message;
     }
     
     
     //-------- Managing Exit of Car Park --------//
+    
+    /**
+     * Checks whether or not a particular Vehicle is currently
+     * parked in the Car Park.
+     * 
+     * @param Vehicle $aVehicle
+     * @return boolean
+     */
+    public function isVehicleParked($aVehicle) {
+        $found = false;
+        $parkedVehicles = $this->getAllParkedVehicles();
+        
+        foreach ($parkedVehicles as $aStay) {
+            if ($aStay->getVehicle() === $aVehicle) {
+                $found = true;
+            }
+        }       
+        return $found;
+    }
+    
+    /**
+     * Finds the appropriate 'Stay' object when you pass in a 
+     * parked 'Vehicle' object.
+     * 
+     * @param type $aVehicle
+     * @return Stay $stay
+     */
+    function findStay($aVehicle) {
+        $parkedVehicles = $this->getAllParkedVehicles();
+        
+        foreach ($parkedVehicles as $aStay) {
+            if ($aStay->getVehicle() === $aVehicle) {
+                $stay = $aStay;
+            }
+        }
+        return $stay;
+    }
     
     /**
      * Removes vehicle from collection of parkedVehicles.
@@ -359,22 +446,34 @@ class CarPark {
      * @param Vehicle $aVehicle
      */
     public function vehicleLeaves($aVehicle) {
-        switch (get_class($aVehicle)) {
-            case 'Car':
-            case 'Van':
-                $indexOfFind = array_search($aVehicle, $this->parkedCarsAndVans);
-                unset($this->parkedCarsAndVans[$indexOfFind]);
-                break;
-            case 'Lorry':
-                $indexOfFind = array_search($aVehicle, $this->parkedLorries);
-                unset($this->parkedLorries[$indexOfFind]);
-                break;
-            case 'Motorbike':
-                $indexOfFind = array_search($aVehicle, $this->parkedMotorbikes);
-                unset($this->parkedMotorbikes[$indexOfFind]);
-                break;
+        $message = '';
+        
+        if ($this->isVehicleParked($aVehicle)) {
+            $aStay = $this->findStay($aVehicle);
+            
+            switch (get_class($aVehicle)) {
+                case 'Car':
+                case 'Van':
+                    $indexOfFind = array_search($aStay, $this->parkedCarsAndVans);
+                    unset($this->parkedCarsAndVans[$indexOfFind]);
+                    array_filter($this->parkedCarsAndVans);
+                    break;
+                case 'Lorry':                   
+                    $indexOfFind = array_search($aStay, $this->parkedLorries);
+                    unset($this->parkedLorries[$indexOfFind]);
+                    array_filter($this->parkedLorries);
+                    break;
+                case 'Motorbike':
+                    $indexOfFind = array_search($aStay, $this->parkedMotorbikes);
+                    unset($this->parkedMotorbikes[$indexOfFind]);
+                    array_filter($this->parkedMotorbikes);
+                    break;
+            }
+            $message = 'Goodbye ' . $aVehicle->getRegistrationNumber() . '<br>';
+        } else {
+            $message = 'ERROR: ' . $aVehicle->getRegistrationNumber() . ' is not parked in this car park!<br>';
         }
-        echo 'Goodbye ' . $aVehicle->getRegistrationNumber() . '!<br>';
+        echo $message;
     }
     
     
@@ -382,19 +481,16 @@ class CarPark {
     
     /**
      * Returns a string made up of the Registration Numbers of the
-     * contents of the 'Parked Vehicles' 
-     * collection.
+     * contents of the 'Parked Vehicle' collections.
      * 
      * @return string
      */
     public function displayVehicleRegNumbers() {
         $regNumbers = '';
-        $parkedVehicles = array_merge($this->getParkedCarsAndVans(),
-                                      $this->getParkedLorries(),
-                                      $this->getParkedMotorbikes());
+        $parkedVehicles = $this->getAllParkedVehicles();
         
-        foreach ($parkedVehicles as $aVehicle) {
-            $regNumbers .= $aVehicle->getRegistrationNumber() . '<br>';
+        foreach ($parkedVehicles as $aStay) {
+            $regNumbers .= $aStay->getVehicle()->getRegistrationNumber() . '<br>';
         }
         
         return $regNumbers;
@@ -422,7 +518,8 @@ class CarPark {
         return 'This Car Park is ' . $this->getName() . '.<br>' .
             'It has a maximum height of ' . $this->getMaxHeight() . 'cm,<br>' .
             $this->getNumberOfCarSpaces() . ' car spaces,<br>' .
-            $this->getNumberOfLorrySpaces() . ' lorry spaces,<br>and ' .
-            $this->getNumberOfMotorbikeSpaces() . ' motorbike spaces.<br>';
+            $this->getNumberOfLorrySpaces() . ' lorry spaces,<br>' .
+            $this->getNumberOfMotorbikeSpaces() . ' motorbike spaces,<br>and a max stay of ' . 
+            $this->getMaxStay() . ' hours.<br>';
     }
 }

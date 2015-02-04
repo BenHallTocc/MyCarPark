@@ -35,3 +35,4 @@ class Lorry extends Vehicle implements VehicleInterface {
         }
     }
 }
+

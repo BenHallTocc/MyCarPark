@@ -1,13 +1,13 @@
 {
-    "name": "b.hall",
-    
     "require": {
-        
+
     },
-    
+    "require-dev": {
+	"phpunit/phpunit": "*"
+    },
     "autoload": {
-        "psr-0": {
-            "": ""
+	"psr-0": {
+            "MyCarPark": ""
         }
     }
 }

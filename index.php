@@ -19,7 +19,7 @@ and open the template in the editor.
 	<div id="main-container">
             <div id="main">			
                 <article>
-                    <?php require_once 'testPractical3.php'; ?>
+                    <?php require_once 'practicalTest.php'; ?>
                 </article>
 			
             </div> <!-- #main -->

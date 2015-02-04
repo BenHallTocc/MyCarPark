@@ -11,6 +11,7 @@
 
 require_once 'autoload.php';
 
+
 // Part 1 - Create a new Car Park object.
 echo '<h2>Create a new Car Park object</h2>';
 
@@ -69,7 +70,8 @@ echo '<h2>Park all the cars in the Car Park</h2>';
 foreach ($waitingVehicles as $aVehicle) {
     $carPark->vehicleEnters($aVehicle);
 }
-        
+    
+
 // Part 5 - Print a first report on the state of the car park.
 echo '<h2>Print a first report on the state of the Car Park</h2>';
 
@@ -82,6 +84,7 @@ echo '<h2>Remove some parked cars</h2>';
 $carPark->vehicleLeaves($lorry1);
 $carPark->vehicleLeaves($motorbike2);
         
+
 // Part 7 - Print a second report on the state of the car park.
 echo '<h2>Print a second report on the state of the Car Park</h2>';
 

@@ -44,3 +44,4 @@ class Driver extends Person {
         $this->drivingLicenseNumber = $aDrivingLicenseNumber;
     }
 }
+
